@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DoNotModify;
+using Random = UnityEngine.Random;
 
 namespace Jupiter {
 
@@ -10,20 +11,33 @@ namespace Jupiter {
 	{
 
 		// Singleton 
-		private JupiterController _instance;
+		private static JupiterController _instance;
 
-		public JupiterController Instance
+		public static JupiterController Instance
 		{
 			get => _instance;
 			set => _instance = value;
 		}
 
-		private List<WayPoint> _allWaypoints;
+		private List<WayPointView> _allWaypoints;
 
-		public List<WayPoint> AllWaypoints
+		public List<WayPointView> AllWaypoints
 		{
 			get => _allWaypoints;
-			set => _allWaypoints = value;
+		}
+
+		[SerializeField] private List<Area> allAreas = new List<Area>();
+
+		public List<Area> AllAreas
+		{
+			get => allAreas;
+		}
+
+		private int _owner;
+
+		public int Owner
+		{
+			get => _owner;
 		}
 		
 		private void Awake()
@@ -36,8 +50,7 @@ namespace Jupiter {
 
 		public override void Initialize(SpaceShipView spaceship, GameData data)
 		{
-			
-			
+			_allWaypoints = new List<WayPointView>(data.WayPoints);
 		}
 
 		public override InputData UpdateInput(SpaceShipView spaceship, GameData data)
@@ -45,8 +58,27 @@ namespace Jupiter {
 			SpaceShipView otherSpaceship = data.GetSpaceShipForOwner(1 - spaceship.Owner);
 			float thrust = 1.0f;
 			float targetOrient = spaceship.Orientation + 90.0f;
+
 			bool needShoot = AimingHelpers.CanHit(spaceship, otherSpaceship.Position, otherSpaceship.Velocity, 0.15f);
+
+			_owner = spaceship.Owner;
+			
 			return new InputData(thrust, targetOrient, needShoot, false, false);
+		}
+
+
+		public IEnumerator UpdateAreaScore()
+		{
+			Debug.Log("all areas " + allAreas.Count);
+			for (int i = 0; i < allAreas.Count; i++)
+			{
+				Area area = allAreas[i];
+				area.Score = Random.Range(0, allAreas.Count);
+				Debug.Log("update score ");
+			}
+
+			yield return new WaitForSeconds(5f);
+			StartCoroutine(UpdateAreaScore());
 		}
 	}
 
