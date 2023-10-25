@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using BehaviorDesigner.Runtime;
 using UnityEngine;
 using DoNotModify;
 using Random = UnityEngine.Random;
@@ -39,7 +41,45 @@ namespace Jupiter {
 		{
 			get => _owner;
 		}
-		
+
+		private Area _targetArea;
+
+		public Area TargetArea
+		{
+			get => _targetArea;
+			set => _targetArea = value;
+		}
+
+		private int _targetWaypoint;
+
+		public int TargetWaypoint
+		{
+			get => _targetWaypoint;
+			set
+			{
+				_targetWaypoint = value;
+				_targetWaypoint = Mathf.Clamp(_targetWaypoint, 0, _targetArea.Waypoints.Count);
+			}
+		}
+
+
+		private Vector2 _lookPosition;
+
+		public Vector2 LookPosition
+		{
+			get => _lookPosition;
+			set => _lookPosition = value;
+		}
+
+		[SerializeField] private BehaviorTree behaviorTree;
+
+		public BehaviorTree BehaviorTree
+		{
+			get => behaviorTree;
+		}
+
+		private bool test;
+
 		private void Awake()
 		{
 			if (_instance == null)
@@ -51,30 +91,31 @@ namespace Jupiter {
 		public override void Initialize(SpaceShipView spaceship, GameData data)
 		{
 			_allWaypoints = new List<WayPointView>(data.WayPoints);
+			behaviorTree.SetVariableValue("IAOwner",spaceship.Owner);
 		}
 
 		public override InputData UpdateInput(SpaceShipView spaceship, GameData data)
 		{
 			SpaceShipView otherSpaceship = data.GetSpaceShipForOwner(1 - spaceship.Owner);
-			float thrust = 1.0f;
-			float targetOrient = spaceship.Orientation + 90.0f;
+			float thrust = 1f;
+			float targetOrient = AimingHelpers.ComputeSteeringOrient(spaceship,_lookPosition);
 
 			bool needShoot = AimingHelpers.CanHit(spaceship, otherSpaceship.Position, otherSpaceship.Velocity, 0.15f);
 
 			_owner = spaceship.Owner;
-			
+			behaviorTree.SetVariableValue("IAPosition",spaceship.Position);
+			behaviorTree.SetVariableValue("NextWaypointPosition",_lookPosition);
+
 			return new InputData(thrust, targetOrient, needShoot, false, false);
 		}
 
 
 		public IEnumerator UpdateAreaScore()
 		{
-			Debug.Log("all areas " + allAreas.Count);
 			for (int i = 0; i < allAreas.Count; i++)
 			{
 				Area area = allAreas[i];
 				area.Score = Random.Range(0, allAreas.Count);
-				Debug.Log("update score ");
 			}
 
 			yield return new WaitForSeconds(5f);

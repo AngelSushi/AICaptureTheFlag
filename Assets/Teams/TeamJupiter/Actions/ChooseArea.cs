@@ -21,15 +21,12 @@ namespace  Jupiter
 
         public override TaskStatus OnUpdate()
         {
-            
-           // Trouver la zone avec le score le plus faible et dans lequel il n'a pas capturer les flags 
 
            Area area = _controller.AllAreas.OrderBy(area => area.Score)
                .Where(area => area.Waypoints.Any(waypoint => waypoint.Owner != _controller.Owner))
                .ToList()[0];
 
-           Debug.Log("first of " + area.Waypoints.First().Position);
-
+           _controller.TargetArea = area;
 
            return TaskStatus.Success;
         }

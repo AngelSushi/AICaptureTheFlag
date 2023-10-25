@@ -1,14 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace DoNotModify
 {
+	[Serializable]
 	public class WayPointView
     {
 		public WayPointView(WayPoint waypoint) { _waypoint = waypoint; }
 
-		WayPoint _waypoint;
+		[SerializeField] WayPoint _waypoint;
 
         // Constants
         public float Radius { get { return _waypoint.Radius; } }
@@ -18,6 +20,7 @@ namespace DoNotModify
         public Vector2 Position { get { return _waypoint.Position; } }
     }
 
+	[Serializable]
     public class WayPoint : MonoBehaviour
 	{
 		const string ANIM_ON_CHANGE_OWNER = "OnChangeOwner";

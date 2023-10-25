@@ -33,6 +33,7 @@ namespace Jupiter
                 return TaskStatus.Failure;
             }
 
+            Debug.Log("log");
             List<WayPointView> checkedWaypoints = new List<WayPointView>(_controller.AllWaypoints);
 
             foreach (WayPointView waypoint in checkedWaypoints.ToList())
