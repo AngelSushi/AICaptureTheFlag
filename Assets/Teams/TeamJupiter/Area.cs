@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using DoNotModify;
 using UnityEngine;
 
@@ -13,7 +14,10 @@ namespace Jupiter
 
         [SerializeField] private List<WayPointView> waypoints;
         [SerializeField] private int score;
-
+        [SerializeField] private Vector2 topLeftCorner;
+        [SerializeField] private Vector2 botRightCorner;
+        
+        
         public int Score
         {
             get => score;
@@ -29,6 +33,9 @@ namespace Jupiter
         public Area(List<WayPointView> waypoints)
         {
             this.waypoints = waypoints;
+
+            topLeftCorner = new Vector2(waypoints.Min(waypoint => waypoint.Position.x),waypoints.Max(waypoint => waypoint.Position.y));
+            botRightCorner = new Vector2(waypoints.Max(waypoint => waypoint.Position.x),waypoints.Min(waypoint => waypoint.Position.y));
         }
     }
 }
