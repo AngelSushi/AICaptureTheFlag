@@ -4,26 +4,30 @@ using System.Collections.Generic;
 using DoNotModify;
 using UnityEngine;
 
-[Serializable]
-public class WaypointHeuristic
+namespace Jupîter
 {
+    [Serializable]
 
-    [SerializeField] private WayPointView waypoint;
-    [SerializeField] private int score;
-
-    public WayPointView Waypoint
+    public class WaypointHeuristic
     {
-        get => waypoint;
-    }
 
-    public int Score
-    {
-        get => score;
-        set => score = value;
-    }
+        [SerializeField] private WayPointView waypoint;
+        [SerializeField] private int score;
 
-    public WaypointHeuristic(WayPointView waypoint)
-    {
-        this.waypoint = waypoint;
+        public WayPointView Waypoint
+        {
+            get => waypoint;
+        }
+
+        public int Score
+        {
+            get => score;
+            set => score = value;
+        }
+
+        public WaypointHeuristic(WayPointView waypoint)
+        {
+            this.waypoint = waypoint;
+        }
     }
 }

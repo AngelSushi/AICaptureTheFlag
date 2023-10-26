@@ -26,7 +26,7 @@ namespace Jupiter
             if (colliders.Length > 0)
             {
                 Debug.Log("detect mine " + colliders[0].transform.root.GetComponent<Mine>().Position);
-                _controller.BehaviorTree.SetVariableValue("DetectPosition",colliders[0].transform.root.GetComponent<Mine>().Position);
+                _controller.MineTree.SetVariableValue("DetectPosition",colliders[0].transform.root.GetComponent<Mine>().Position);
                 return TaskStatus.Success;
             }
             

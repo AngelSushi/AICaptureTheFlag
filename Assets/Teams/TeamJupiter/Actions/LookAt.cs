@@ -23,7 +23,7 @@ namespace Jupiter
         public override TaskStatus OnUpdate()
         {
             _controller.LookPosition = _controller.TargetCluster.Waypoints[lookIndex.Value].Position;
-            _controller.BehaviorTree.SetVariableValue("TargetWaypointOwner",_controller.TargetCluster.Waypoints[lookIndex.Value].Owner);
+            _controller.MovementTree.SetVariableValue("TargetWaypointOwner",_controller.TargetCluster.Waypoints[lookIndex.Value].Owner);
             
             Debug.Log("look at " + _controller.LookPosition + " " + _controller.TargetCluster.Waypoints[lookIndex.Value].Owner);
             

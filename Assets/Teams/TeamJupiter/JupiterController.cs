@@ -5,6 +5,7 @@ using System.Linq;
 using BehaviorDesigner.Runtime;
 using UnityEngine;
 using DoNotModify;
+using Jupîter;
 using Random = UnityEngine.Random;
 
 namespace Jupiter {
@@ -16,11 +17,20 @@ namespace Jupiter {
 		private static JupiterController _instance;
 		public static JupiterController Instance { get => _instance; }
 		
-		[SerializeField] private BehaviorTree behaviorTree;
-		public BehaviorTree BehaviorTree { get => behaviorTree; }
+		[SerializeField] private BehaviorTree mainTree;
+		public BehaviorTree MainTree { get => mainTree; }
+
+		[SerializeField] private BehaviorTree movementTree;
+		public BehaviorTree MovementTree { get => movementTree; }
+		
+		[SerializeField] private BehaviorTree mineTree;
+		public BehaviorTree MineTree { get => mineTree; }
 
 		private SpaceShipView _spaceShip;
 		public SpaceShipView SpaceShip { get => _spaceShip; }
+
+		private SpaceShipView _otherSpaceShip;
+		public SpaceShipView OtherSpaceShip { get => _otherSpaceShip; }
 
 		// #USED IN DivideArea
 		private List<WayPointView> _allWaypoints;
@@ -78,14 +88,14 @@ namespace Jupiter {
 		public override void Initialize(SpaceShipView spaceship, GameData data)
 		{
 			_allWaypoints = new List<WayPointView>(data.WayPoints);
-			behaviorTree.SetVariableValue("IAOwner",spaceship.Owner);
+			movementTree.SetVariableValue("IAOwner",spaceship.Owner);
 
 			_maxTime = data.timeLeft;
 		}
 
 		public override InputData UpdateInput(SpaceShipView spaceship, GameData data)
 		{
-			SpaceShipView otherSpaceship = data.GetSpaceShipForOwner(1 - spaceship.Owner);
+			_otherSpaceShip = data.GetSpaceShipForOwner(1 - spaceship.Owner);
 			float thrust = 1f;
 			float targetOrient = AimingHelpers.ComputeSteeringOrient(spaceship,_lookPosition); 
 			// SignedAngle entre deux vecteurs (normal et direction) et ensuite ca nous donne un angle positiof ou négatif si positif tourner dans un sens si négatif tourner
@@ -95,8 +105,8 @@ namespace Jupiter {
 			_spaceShip = spaceship;
 			_timeLeft = data.timeLeft;
 			
-			behaviorTree.SetVariableValue("IAPosition",spaceship.Position);
-			behaviorTree.SetVariableValue("NextWaypointPosition",_lookPosition);
+			movementTree.SetVariableValue("IAPosition",spaceship.Position);
+			movementTree.SetVariableValue("NextWaypointPosition",_lookPosition);
 
 			if (_shoot)
 			{
@@ -118,37 +128,57 @@ namespace Jupiter {
 				waypointHeuristic.Score = HeuristicHelper.CalcuateWaypointHeuristic(this, waypointHeuristic.Waypoint);
 			}
 
-			RaycastHit2D hit = Physics2D.Raycast(spaceship.Position, spaceship.LookAt, 2, 1 << 12);
-			
-			if(hit.collider != null)
-			{
-				Debug.Log("raycast hit");
-				float signedAngle = Vector2.SignedAngle(hit.normal, spaceship.LookAt);
-				Debug.Log("signedANgle " + signedAngle);
-				_avoidAngle = 90 * Mathf.Sign(signedAngle);
-				StartCoroutine(Wait());
-
-			}
-			
-			
-			return new InputData(thrust, targetOrient + _avoidAngle, _shoot, false, _shockWave);
+			return new InputData(thrust, targetOrient + CalculateAvoidanceAngle(), _shoot, false, _shockWave);
 		}
 		
 
 		private void OnDrawGizmos()
 		{
-			if (_spaceShip != null && behaviorTree != null && behaviorTree.GetVariable("RangeDetection") != null)
+			if (_spaceShip != null && mainTree != null && mainTree.GetVariable("RangeDetection") != null)
 			{
-				Gizmos.DrawSphere(_spaceShip.Position,(float)behaviorTree.GetVariable("RangeDetection").GetValue());
+				Gizmos.DrawSphere(_spaceShip.Position,(float)mainTree.GetVariable("RangeDetection").GetValue());
 				Gizmos.color = Color.yellow;
 				Gizmos.DrawLine(_spaceShip.Position,_spaceShip.Position + _spaceShip.LookAt * 2);
 			} 
 		}
 
-		private IEnumerator Wait()
+		private int CalculateAvoidanceAngle()
 		{
-			yield return new WaitForEndOfFrame();
-			_avoidAngle = 0;
+			// Top : 0;1
+			// Top Right : 0.5 ; 0.5
+			// Right 1; 0
+			// Bottom Right : 0.5 ; -0.5
+			// Bottom : 0; -1
+			// Bottom Left : -0.5 ; -0.5
+			// Left : -0.5; 0
+			// Top Left : -0.5 ; 0.5f
+
+			Vector2[] allDirections =
+			{
+				new Vector2(0,1), new Vector2(1f,1f), new Vector2(1,0),
+				new Vector2(1f,-1f), new Vector2(0,-1), new Vector2(-1f,-1f),
+				new Vector2(-1f,0), new Vector2(-1f,1f)
+			};
+
+			int avoidAngle = 0;
+
+			foreach (Vector2 direction in allDirections)
+			{
+				RaycastHit2D hit = Physics2D.Raycast(_spaceShip.Position, direction,2, 1 << 12);
+
+				if (hit.collider != null)
+				{
+					Debug.DrawLine(_spaceShip.Position,_spaceShip.Position + direction *2,Color.red);
+
+					avoidAngle += (int) (Vector2.Angle(_spaceShip.LookAt,hit.normal));
+				}
+				else
+				{
+					Debug.DrawLine(_spaceShip.Position,_spaceShip.Position + direction *2,Color.yellow);
+				}
+			}
+			
+			return 0;
 		}
 	}
 

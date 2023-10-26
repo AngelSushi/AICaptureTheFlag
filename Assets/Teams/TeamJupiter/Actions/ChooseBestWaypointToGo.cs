@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BehaviorDesigner.Runtime.Tasks;
 using DoNotModify;
+using Jupîter;
 using UnityEngine;
 
 namespace Jupiter
@@ -46,7 +47,7 @@ namespace Jupiter
                 return TaskStatus.Failure;
             }
             
-            _controller.BehaviorTree.SetVariableValue("AreaWaypointIndex", _controller.TargetCluster.Waypoints.IndexOf(bestWaypoint.Waypoint));
+            _controller.MovementTree.SetVariableValue("AreaWaypointIndex", _controller.TargetCluster.Waypoints.IndexOf(bestWaypoint.Waypoint));
             
             return TaskStatus.Success;
         }

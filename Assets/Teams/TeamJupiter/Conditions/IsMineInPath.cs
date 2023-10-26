@@ -25,7 +25,7 @@ namespace Jupiter
             
             Debug.Log("minePos " + minePosition);
             
-            if (AimingHelpers.CanHit(_controller.SpaceShip, minePosition.Value, (float)_controller.BehaviorTree.GetVariable("DetectionAngleOffset").GetValue()))
+            if (AimingHelpers.CanHit(_controller.SpaceShip, minePosition.Value, (float)_controller.MainTree.GetVariable("DetectionAngleOffset").GetValue()))
             {
                 Debug.Log("can hit");
                 return TaskStatus.Success;
