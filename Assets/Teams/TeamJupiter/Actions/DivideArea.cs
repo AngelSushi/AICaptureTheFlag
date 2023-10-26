@@ -55,20 +55,20 @@ namespace Jupiter
                         
                     }
 
-                    Area area = new Area(areaWaypoints);
-                    _controller.AllAreas.Add(area);
+                    Cluster cluster = new Cluster(areaWaypoints);
+                    _controller.AllClusters.Add(cluster);
                 }
             }
 
-            StartCoroutine(_controller.UpdateAreaScore());
+            //StartCoroutine(_controller.UpdateAreaScore());
             return TaskStatus.Success;
         }
 
         private bool IsAlreadyInArea(WayPointView waypoint)
         {
-            foreach (Area area in _controller.AllAreas)
+            foreach (Cluster cluster in _controller.AllClusters)
             {
-                if (area.Waypoints.Contains(waypoint))
+                if (cluster.Waypoints.Contains(waypoint))
                 {
                     return true;
                 }

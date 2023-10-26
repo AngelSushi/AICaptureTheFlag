@@ -20,7 +20,7 @@ namespace Jupiter
 
         public override TaskStatus OnUpdate()
         {
-            if (_controller.TargetArea.Waypoints.All(waypoint => waypoint.Owner == _controller.Owner))
+            if (_controller.TargetCluster.Waypoints.All(waypoint => waypoint.Owner == _controller.Owner))
             {
                 return TaskStatus.Success;
             }

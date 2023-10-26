@@ -23,16 +23,16 @@ namespace  Jupiter
         public override TaskStatus OnUpdate()
         {
 
-           Area area = _controller.AllAreas.OrderBy(area => area.Score)
+           Cluster cluster = _controller.AllClusters.OrderBy(area => area.Score)
                .Where(area => area.Waypoints.Any(waypoint => waypoint.Owner != _controller.Owner))
                .ToList()[0];
 
-           _controller.TargetArea = area;
-           Debug.Log("change area ( indexof : " + _controller.AllAreas.IndexOf(area) + " )");
+           _controller.TargetCluster = cluster;
+           Debug.Log("change area ( indexof : " + _controller.AllClusters.IndexOf(cluster) + " )");
 
            _controller.ClusterWaypointHeuristics.Clear();
            
-           foreach (WayPointView waypoint in area.Waypoints)
+           foreach (WayPointView waypoint in cluster.Waypoints)
            {
                WaypointHeuristic waypointHeuristic = new WaypointHeuristic(waypoint);
                _controller.ClusterWaypointHeuristics.Add(waypointHeuristic);

@@ -46,7 +46,7 @@ namespace Jupiter
                 return TaskStatus.Failure;
             }
             
-            _controller.BehaviorTree.SetVariableValue("AreaWaypointIndex", _controller.TargetArea.Waypoints.IndexOf(bestWaypoint.Waypoint));
+            _controller.BehaviorTree.SetVariableValue("AreaWaypointIndex", _controller.TargetCluster.Waypoints.IndexOf(bestWaypoint.Waypoint));
             
             return TaskStatus.Success;
         }

@@ -22,10 +22,10 @@ namespace Jupiter
 
         public override TaskStatus OnUpdate()
         {
-            _controller.LookPosition = _controller.TargetArea.Waypoints[lookIndex.Value].Position;
-            _controller.BehaviorTree.SetVariableValue("TargetWaypointOwner",_controller.TargetArea.Waypoints[lookIndex.Value].Owner);
+            _controller.LookPosition = _controller.TargetCluster.Waypoints[lookIndex.Value].Position;
+            _controller.BehaviorTree.SetVariableValue("TargetWaypointOwner",_controller.TargetCluster.Waypoints[lookIndex.Value].Owner);
             
-            Debug.Log("look at " + _controller.LookPosition + " " + _controller.TargetArea.Waypoints[lookIndex.Value].Owner);
+            Debug.Log("look at " + _controller.LookPosition + " " + _controller.TargetCluster.Waypoints[lookIndex.Value].Owner);
             
             return TaskStatus.Success;
         }

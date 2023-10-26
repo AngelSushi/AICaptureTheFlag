@@ -27,16 +27,16 @@ namespace Jupiter {
 		public List<WayPointView> AllWaypoints { get => _allWaypoints; }
 
 		// USED IN DivideArea & ChooseArea
-		[SerializeField] private List<Area> allAreas = new List<Area>();
-		public List<Area> AllAreas { get => allAreas; }
+		[SerializeField] private List<Cluster> allClusters = new List<Cluster>();
+		public List<Cluster> AllClusters { get => allClusters; }
 
 		// USED IN ChooseArea
 		private int _owner;
 		public int Owner { get => _owner; }
 
 		// USED IN ChooseArea & LookAt
-		private Area _targetArea;
-		public Area TargetArea { get => _targetArea; set => _targetArea = value; }
+		private Cluster _targetCluster;
+		public Cluster TargetCluster { get => _targetCluster; set => _targetCluster = value; }
 
 		// USED IN LookAt
 		private Vector2 _lookPosition;
@@ -54,6 +54,19 @@ namespace Jupiter {
 		private bool _shockWave;
 		public bool ShockWave { set => _shockWave = value; }
 		
+		// Used in HeuristicHelper
+		private float _timeLeft;
+		public float TimeLeft { get => _timeLeft; }
+
+		private float _maxTime;
+
+		public float MaxTime
+		{
+			get => _maxTime;
+		}
+
+		private float _avoidAngle;
+		
 		private void Awake()
 		{
 			if (_instance == null)
@@ -66,16 +79,22 @@ namespace Jupiter {
 		{
 			_allWaypoints = new List<WayPointView>(data.WayPoints);
 			behaviorTree.SetVariableValue("IAOwner",spaceship.Owner);
+
+			_maxTime = data.timeLeft;
 		}
 
 		public override InputData UpdateInput(SpaceShipView spaceship, GameData data)
 		{
 			SpaceShipView otherSpaceship = data.GetSpaceShipForOwner(1 - spaceship.Owner);
-			float thrust = 0f;
-			float targetOrient = AimingHelpers.ComputeSteeringOrient(spaceship,_lookPosition);
+			float thrust = 1f;
+			float targetOrient = AimingHelpers.ComputeSteeringOrient(spaceship,_lookPosition); 
+			// SignedAngle entre deux vecteurs (normal et direction) et ensuite ca nous donne un angle positiof ou négatif si positif tourner dans un sens si négatif tourner
+			// dans l'autre
 
 			_owner = spaceship.Owner;
 			_spaceShip = spaceship;
+			_timeLeft = data.timeLeft;
+			
 			behaviorTree.SetVariableValue("IAPosition",spaceship.Position);
 			behaviorTree.SetVariableValue("NextWaypointPosition",_lookPosition);
 
@@ -88,29 +107,48 @@ namespace Jupiter {
 			{
 				Debug.Log("ask for shockwave");
 			}
-			
-			return new InputData(thrust, targetOrient, _shoot, false, _shockWave);
-		}
 
-
-		public IEnumerator UpdateAreaScore()
-		{
-			for (int i = 0; i < allAreas.Count; i++)
+			foreach (Cluster cluster in allClusters)
 			{
-				Area area = allAreas[i];
-				area.Score = Random.Range(0, allAreas.Count);
+				cluster.Score = HeuristicHelper.CalculateZoneHeuristic(this, cluster);
 			}
 
-			yield return new WaitForSeconds(5f);
-			//StartCoroutine(UpdateAreaScore());
+			foreach (WaypointHeuristic waypointHeuristic in clusterWaypointHeuristics)
+			{
+				waypointHeuristic.Score = HeuristicHelper.CalcuateWaypointHeuristic(this, waypointHeuristic.Waypoint);
+			}
+
+			RaycastHit2D hit = Physics2D.Raycast(spaceship.Position, spaceship.LookAt, 2, 1 << 12);
+			
+			if(hit.collider != null)
+			{
+				Debug.Log("raycast hit");
+				float signedAngle = Vector2.SignedAngle(hit.normal, spaceship.LookAt);
+				Debug.Log("signedANgle " + signedAngle);
+				_avoidAngle = 90 * Mathf.Sign(signedAngle);
+				StartCoroutine(Wait());
+
+			}
+			
+			
+			return new InputData(thrust, targetOrient + _avoidAngle, _shoot, false, _shockWave);
 		}
+		
 
 		private void OnDrawGizmos()
 		{
 			if (_spaceShip != null && behaviorTree != null && behaviorTree.GetVariable("RangeDetection") != null)
 			{
-				Gizmos.DrawSphere(_spaceShip.Position,(float)behaviorTree.GetVariable("RangeDetection").GetValue());	
+				Gizmos.DrawSphere(_spaceShip.Position,(float)behaviorTree.GetVariable("RangeDetection").GetValue());
+				Gizmos.color = Color.yellow;
+				Gizmos.DrawLine(_spaceShip.Position,_spaceShip.Position + _spaceShip.LookAt * 2);
 			} 
+		}
+
+		private IEnumerator Wait()
+		{
+			yield return new WaitForEndOfFrame();
+			_avoidAngle = 0;
 		}
 	}
 
